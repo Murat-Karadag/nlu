@@ -1,21 +1,17 @@
 import nlu
 from nlu.discovery import Discoverer
-from nlu.pipe.utils.storage_ref_utils import StorageRefUtils
-from typing import List, Tuple, Optional, Dict, Union
+from typing import List, Optional, Union
 import streamlit as st
-from nlu.utils.modelhub.modelhub_utils import ModelHubUtils
-import numpy as np
 import pandas as pd
 from nlu.pipe.viz.streamlit_viz.streamlit_utils_OS import StreamlitUtilsOS
 from nlu.pipe.viz.streamlit_viz.gen_streamlit_code import get_code_for_viz
 from nlu.pipe.viz.streamlit_viz.styles import _set_block_container_style
-import random
 from nlu.pipe.viz.streamlit_viz.streamlit_viz_tracker import StreamlitVizTracker
 class ClassifierStreamlitBlock():
 
     @staticmethod
     def visualize_classes(
-            pipe, # nlu pipe
+            pipe, # nlu component_list
             text:Union[str,list,pd.DataFrame, pd.Series, List[str]]=('I love NLU and Streamlit and sunny days!', 'I hate rainy daiys','CALL NOW AND WIN 1000$M'),
             output_level:Optional[str]='document',
             title: Optional[str] = "Text Classification",
@@ -35,7 +31,7 @@ class ClassifierStreamlitBlock():
         if title:st.header(title)
         if sub_title:st.subheader(sub_title)
 
-        # if generate_code_sample: st.code(get_code_for_viz('CLASSES',StreamlitUtilsOS.extract_name(pipe),text))
+        # if generate_code_sample: st.code(get_code_for_viz('CLASSES',StreamlitUtilsOS.extract_name(component_list),text))
         if not isinstance(text, (pd.DataFrame, pd.Series)):
             text = st.text_area('Enter N texts, seperated by new lines to view classification results for','\n'.join(text) if isinstance(text,list) else text, key=key)
             text = text.split("\n")
@@ -43,7 +39,7 @@ class ClassifierStreamlitBlock():
         classifier_pipes = [pipe]
         classifier_components_usable = [e for e in Discoverer.get_components('classify',True, include_aliases=True)]
         classifier_components = StreamlitUtilsOS.find_all_classifier_components(pipe)
-        loaded_classifier_nlu_refs = [c.info.nlu_ref for c in classifier_components ]
+        loaded_classifier_nlu_refs = [c.nlu_ref for c in classifier_components ]
 
         for l in loaded_classifier_nlu_refs:
             if 'converter' in l :

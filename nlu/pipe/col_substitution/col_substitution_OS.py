@@ -147,6 +147,27 @@ def substitute_transformer_token_classifier_cols(c, cols, is_unique=True):
             # new_cols[col]= f"{new_base_name}_confidence"
     return new_cols
 
+def substitute_seq_bert_classifier_cols(c, cols, is_unique=True):
+    """
+    Token classifier
+    """
+    new_cols = {}
+    new_base_name = 'classified_token'# if is_unique else f'document_{nlu_identifier}'
+    for col in cols :
+        if '_results'    in col       : new_cols[col] = new_base_name
+        elif '_beginnings' in col     : new_cols[col] = f'{new_base_name}_begin'
+        elif '_endings'    in col     : new_cols[col] = f'{new_base_name}_end'
+        elif '_embeddings' in col and 'Some' not in col     : continue # Token never stores Embeddings  new_cols[col] = f'{new_base_name}_embedding'
+        elif '_types' in col          : continue # new_cols[col] = f'{new_base_name}_type'
+        elif 'meta' in col:
+            if '_sentence' in col  : new_cols[col] = f'{new_base_name}_origin_sentence'  # maps to which sentence token comes from
+            if 'Some' in col  : new_cols[col] = f"'{new_base_name}_{col.split('Some(')[-1].split(')')[0]}_confidence" # maps to which sentence token comes from
+            if 'meta_' in col  : new_cols[col] = f"'{new_base_name}_{col.split('meta_')[-1]}_confidence" # maps to which sentence token comes from
+            else : logger.info(f'Dropping unmatched metadata_col={col} for c={c}')
+            # new_cols[col]= f"{new_base_name}_confidence"
+    return new_cols
+
+
 
 def substitute_word_embed_cols(c, cols, nlu_identifier=True):
     """
@@ -223,12 +244,12 @@ def substitute_classifier_dl_cols(c, cols, nlu_identifier=True):
         elif '_types' in col          : continue #
         elif '_embeddings' in col     : continue #
         elif 'meta' in col:
-            old_base_name = f'meta_{c.info.outputs[0]}'
+            old_base_name = f'meta_{c.out_types[0]}'
             metadata = col.split(old_base_name)[-1]
             if '_sentence' in col  : new_cols[col] = f'{new_base_name}_origin_sentence'  # maps to which sentence token comes from
             elif metadata =='confidence'  :  new_cols[col] = f'{new_base_name}_confidence'  # max confidence over all classes
             else :                   new_cols[col] = f'{new_base_name}{metadata}_confidence'  # confidence field
-            # else : logger.info(f'Dropping unmatched metadata_col={col} for c={c}')
+            # else : logger.info(f'Dropping unmatched metadata_col={col} for os_components={os_components}')
 
     return new_cols
 def substitute_ngram_cols(c, cols, nlu_identifier=True):
@@ -338,7 +359,7 @@ def substitute_doc_norm_cols(c, cols, nlu_identifier=True):
 def substitute_spell_context_cols(c, cols, nlu_identifier=True):
     """
     Substitute col name for normalized,  <spell> will be new base col namem
-    1 spell checker is assumed per pipe for now
+    1 spell checker is assumed per component_list for now
     """
     new_cols = {}
     new_base_name = f'spell' if nlu_identifier=='UNIQUE' else f'spell_dl'
@@ -356,7 +377,7 @@ def substitute_spell_context_cols(c, cols, nlu_identifier=True):
 def substitute_spell_symm_cols(c, cols, nlu_identifier=True):
     """
     Substitute col name for sym,  <spell> will be new base col name
-    1 spell checker is assumed per pipe for now
+    1 spell checker is assumed per component_list for now
     """
     new_cols = {}
     new_base_name = f'spell' if nlu_identifier=='UNIQUE' else f'spell_sym'
@@ -374,7 +395,7 @@ def substitute_spell_symm_cols(c, cols, nlu_identifier=True):
 def substitute_spell_norvig_cols(c, cols, nlu_identifier=True):
     """
     Substitute col name for spell,  <spell> will be new base col name
-    1 spell checker is assumed per pipe for now
+    1 spell checker is assumed per component_list for now
     """
     new_cols = {}
     new_base_name = f'spell' if nlu_identifier=='UNIQUE' else f'spell_norvig'
@@ -509,6 +530,31 @@ def substitute_marian_cols(c, cols, nlu_identifier=True):
             else : logger.info(f'Dropping unmatched metadata_col={col} for c={c}')
             # new_cols[col]= f"{new_base_name}_confidence"
     return new_cols
+
+
+def substitute_gpt2_cols(c, cols, nlu_identifier=True):
+    """
+    rename cols with base name either <gpt> or if not unique <generated_identifier>
+    """
+    new_cols = {}
+    new_base_name = 'generated' if nlu_identifier=='UNIQUE' else f'generated_{nlu_identifier}'
+    for col in cols :
+        if '_results'    in col       : new_cols[col] = new_base_name
+        elif '_beginnings' in col     : new_cols[col] = f'{new_base_name}_begin'
+        elif '_endings'    in col     : new_cols[col] = f'{new_base_name}_end'
+        elif '_embeddings' in col     : continue # Token never stores Embeddings  new_cols[col] = f'{new_base_name}_embedding'
+        elif '_types' in col          : continue # new_cols[col] = f'{new_base_name}_type'
+        elif 'meta' in col:
+            if '_sentence' in col  : new_cols[col] = f'{new_base_name}_origin_sentence'  # maps to which sentence token comes from
+            else : logger.info(f'Dropping unmatched metadata_col={col} for c={c}')
+            # new_cols[col]= f"{new_base_name}_confidence"
+    return new_cols
+
+
+
+
+
+
 def substitute_T5_cols(c, cols, nlu_identifier=True):
     """
     rename cols with base name either <t5> or if not unique <t5_<task>>
@@ -573,12 +619,12 @@ def substitute_multi_classifier_dl_cols(c, cols, nlu_identifier=True):
         elif '_types' in col          : continue #
         elif '_embeddings' in col     : continue #
         elif 'meta' in col:
-            old_base_name = f'meta_{c.info.outputs[0]}'
+            old_base_name = f'meta_{c.out_types[0]}'
             metadata = col.split(old_base_name)[-1]
             if '_sentence' in col  : new_cols[col] = f'{new_base_name}_origin_sentence'  # maps to which sentence token comes from
             elif metadata =='confidence'  :  new_cols[col] = f'{new_base_name}_confidence'  # max confidence over all classes
             else :                   new_cols[col] = f'{new_base_name}{metadata}_confidence'  # confidence field
-            # else : logger.info(f'Dropping unmatched metadata_col={col} for c={c}')
+            # else : logger.info(f'Dropping unmatched metadata_col={col} for os_components={os_components}')
 
     return new_cols
 
@@ -659,12 +705,12 @@ def substitute_classifier_dl_approach_cols(c, cols, nlu_identifier=True):
         elif '_types' in col          : continue #
         elif '_embeddings' in col     : continue #
         elif 'meta' in col:
-            old_base_name = f'meta_{c.info.outputs[0]}'
+            old_base_name = f'meta_{c.out_types[0]}'
             metadata = col.split(old_base_name)[-1]
             if '_sentence' in col  : new_cols[col] = f'{new_base_name}_origin_sentence'  # maps to which sentence token comes from
             elif metadata =='confidence'  :  new_cols[col] = f'{new_base_name}_confidence'  # max confidence over all classes
             else :                   new_cols[col] = f'{new_base_name}{metadata}_confidence'  # confidence field
-            # else : logger.info(f'Dropping unmatched metadata_col={col} for c={c}')
+            # else : logger.info(f'Dropping unmatched metadata_col={col} for os_components={os_components}')
     return new_cols
 
 
@@ -716,12 +762,12 @@ def substitute_multi_classifier_dl_approach_cols(c, cols, nlu_identifier=True):
         elif '_types' in col          : continue #
         elif '_embeddings' in col     : continue #
         elif 'meta' in col:
-            old_base_name = f'meta_{c.info.outputs[0]}'
+            old_base_name = f'meta_{c.out_types[0]}'
             metadata = col.split(old_base_name)[-1]
             if '_sentence' in col  : new_cols[col] = f'{new_base_name}_origin_sentence'  # maps to which sentence token comes from
             elif metadata =='confidence'  :  new_cols[col] = f'{new_base_name}_confidence'  # max confidence over all classes
             else :                   new_cols[col] = f'{new_base_name}{metadata}_confidence'  # confidence field
-            # else : logger.info(f'Dropping unmatched metadata_col={col} for c={c}')
+            # else : logger.info(f'Dropping unmatched metadata_col={col} for os_components={os_components}')
 
     return new_cols
 

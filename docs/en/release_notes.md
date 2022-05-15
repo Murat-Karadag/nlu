@@ -4451,7 +4451,7 @@ df
 !pip install nlu pyspark==2.4.7
 #Conda
 # Install NLU from Anaconda/Conda
-conda install -c johnsnowlabs nlu
+conda install -os_components johnsnowlabs nlu
 ```
 
 
