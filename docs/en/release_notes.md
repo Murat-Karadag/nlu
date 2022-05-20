@@ -35,7 +35,7 @@ Additionally, you can color the lower dimensional points with a label that has b
 - Reduces Dimensionality of high dimensional Word Embeddings to `1-D`, `2-D`, or `3-D` and plot the resulting data in an interactive `Plotly` plot
 - Applicable with [any of the 100+ Word Embedding models](https://nlp.johnsnowlabs.com/models?task=Embeddings)
 - Color points by classifying with any of the 100+ [Parts of Speech Classifiers](https://nlp.johnsnowlabs.com/models?task=Part+of+Speech+Tagging) or [Document Classifiers](https://nlp.johnsnowlabs.com/models?task=Text+Classification)
-- Gemerates `NUM-DIMENSIONS` * `NUM-EMBEDDINGS` * `NUM-DIMENSION-REDUCTION-ALGOS` plots
+- Generates `NUM-DIMENSIONS` * `NUM-EMBEDDINGS` * `NUM-DIMENSION-REDUCTION-ALGOS` plots
 
 
 
